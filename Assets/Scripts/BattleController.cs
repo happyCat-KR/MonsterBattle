@@ -26,7 +26,10 @@ public class BattleController : MonoBehaviour
     private const int InfantryCost = 2;
     private const int SpearmanCost = 3;
     private const int CavalryCost = 4;
+    private const int RerollCost = 2;
+    private const int ExperienceCost = 4;
     private bool rewardGranted;
+    private BattleUnit.Role[] shopRoles = new BattleUnit.Role[3];
 
     public int PlayerLevel => playerLevel;
     public int Experience => experience;
@@ -64,6 +67,7 @@ public class BattleController : MonoBehaviour
         state = BattleState.Deployment;
         initialized = true;
         rewardGranted = false;
+        RollShop();
 
         RefreshCounts();
     }
@@ -96,6 +100,50 @@ public class BattleController : MonoBehaviour
         gold -= cost;
         RefreshCounts();
         message = $"{RoleName(role)}을(를) 모집했습니다.";
+    }
+
+    private void RollShop()
+    {
+        for (int i = 0; i < shopRoles.Length; i++)
+        {
+            shopRoles[i] = (BattleUnit.Role)Random.Range(0, 3);
+        }
+    }
+
+    private int RoleCost(BattleUnit.Role role)
+    {
+        return role switch
+        {
+            BattleUnit.Role.Spearman => SpearmanCost,
+            BattleUnit.Role.Cavalry => CavalryCost,
+            _ => InfantryCost
+        };
+    }
+
+    private void RerollShop()
+    {
+        if (gold < RerollCost)
+        {
+            message = "골드가 부족합니다.";
+            return;
+        }
+
+        gold -= RerollCost;
+        RollShop();
+        message = "상점을 새로고침했습니다.";
+    }
+
+    private void BuyExperience()
+    {
+        if (gold < ExperienceCost)
+        {
+            message = "골드가 부족합니다.";
+            return;
+        }
+
+        gold -= ExperienceCost;
+        AddExperience(4);
+        message = "경험치를 4 획득했습니다.";
     }
 
     private void Update()
@@ -352,13 +400,21 @@ public class BattleController : MonoBehaviour
 
     private Rect ToolbarRect()
     {
-        float width = Mathf.Min(560f, Screen.width - 20f);
-
         return new Rect(
-            (Screen.width - width) / 2f,
-            Mathf.Max(8f, Screen.height - 175f),
-            width,
-            160f);
+            20f,
+            Screen.height - 260f,
+            720f,
+            230f);
+    }
+
+    private Color RoleColor(BattleUnit.Role role)
+    {
+        return role switch
+        {
+            BattleUnit.Role.Spearman => new Color(0.1f, 0.8f, 0.9f),
+            BattleUnit.Role.Cavalry => new Color(0.95f, 0.7f, 0.1f),
+            _ => new Color(0.2f, 0.45f, 0.95f)
+        };
     }
 
     private void OnGUI()
@@ -421,34 +477,59 @@ public class BattleController : MonoBehaviour
                 message,
                 infoStyle);
 
-            if (GUI.Button(
-                    new Rect(
-                        toolbar.x + toolbar.width - 205f,
-                        toolbar.y + 112f,
-                        190f,
-                        36f),
-                        "전투 시작",
-                    buttonStyle))
+            GUI.Label(new Rect(toolbar.x + 8f, toolbar.y + 68f, 160f, 25f),
+                "대기석 · 배치할 병사", infoStyle);
+
+            // 실제 모델 대신 색상 카드로 현재 아군을 보여주는 임시 대기석입니다.
+            for (int i = 0; i < playerLevel; i++)
+            {
+                float slotX = toolbar.x + 180f + i * 58f;
+                GUI.Box(new Rect(slotX, toolbar.y + 66f, 52f, 32f),
+                    i < alliesAlive ? $"병사\n{i + 1}" : "빈 칸");
+            }
+
+            GUI.Label(new Rect(toolbar.x + 8f, toolbar.y + 104f, 160f, 25f),
+                "상점 · 카드를 눌러 모집", infoStyle);
+
+            for (int i = 0; i < shopRoles.Length; i++)
+            {
+                BattleUnit.Role role = shopRoles[i];
+                float x = toolbar.x + 8f + i * 180f;
+                Rect cardRect = new Rect(x, toolbar.y + 126f, 170f, 62f);
+
+                Color previousColor = GUI.color;
+                GUI.color = RoleColor(role);
+                GUI.Box(cardRect, GUIContent.none);
+                GUI.color = previousColor;
+
+                if (GUI.Button(cardRect,
+                    $"[{RoleName(role)}]\n{RoleCost(role)} 골드", buttonStyle))
+                {
+                    Recruit(role, RoleCost(role));
+                }
+            }
+
+            if (GUI.Button(new Rect(toolbar.x + 8f, toolbar.y + 198f, 145f, 36f),
+                $"새로고침 ({RerollCost})", buttonStyle))
+            {
+                RerollShop();
+            }
+
+            if (GUI.Button(new Rect(toolbar.x + 163f, toolbar.y + 198f, 145f, 36f),
+                $"경험치 +4 ({ExperienceCost})", buttonStyle))
+            {
+                BuyExperience();
+            }
+
+            Rect startButtonRect = new Rect(
+                Screen.width - 230f,
+                Screen.height - 100f,
+                200f,
+                65f
+            );
+            if(GUI.Button(startButtonRect, "전투 시작", buttonStyle))
             {
                 BeginBattle();
-            }
-
-            if (GUI.Button(new Rect(toolbar.x + 8f, toolbar.y + 112f, 115f, 36f),
-                $"일반병 모집 ({InfantryCost})", buttonStyle))
-            {
-                Recruit(BattleUnit.Role.Infantry, InfantryCost);
-            }
-
-            if (GUI.Button(new Rect(toolbar.x + 133f, toolbar.y + 112f, 115f, 36f),
-                $"창병 모집 ({SpearmanCost})", buttonStyle))
-            {
-                Recruit(BattleUnit.Role.Spearman, SpearmanCost);
-            }
-
-            if (GUI.Button(new Rect(toolbar.x + 258f, toolbar.y + 112f, 115f, 36f),
-                $"기마병 모집 ({CavalryCost})", buttonStyle))
-            {
-                Recruit(BattleUnit.Role.Cavalry, CavalryCost);
             }
 
             return;

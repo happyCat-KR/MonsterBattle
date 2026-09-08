@@ -1,0 +1,33 @@
+PASS Empty army cannot start
+PASS Enemy zone rejects deployment
+PASS Buy formation
+PASS Overlapping purchase does not spend gold
+PASS Reposition formation
+PASS Upgrade formation
+PASS Save round trip
+PASS Save preserves economy and upgrades
+PASS Sell refunds investment once
+PASS Cannot sell removed squad twice
+PASS Reject invalid save
+PASS Begin battle
+PASS Combat locks army editing
+PASS Rally only once per wave
+PASS Battle terminates without stalemate
+PASS Undefended fortress can lose
+WAVE 1: phase=Preparation, gate=100, gold=77, time=13.3s
+PASS Campaign wave 1 finishes
+WAVE 2: phase=Preparation, gate=100, gold=111, time=14.4s
+PASS Campaign wave 2 finishes
+WAVE 3: phase=Preparation, gate=100, gold=106, time=17.1s
+PASS Campaign wave 3 finishes
+WAVE 4: phase=Preparation, gate=100, gold=113, time=33.9s
+PASS Campaign wave 4 finishes
+WAVE 5: phase=Preparation, gate=100, gold=127, time=24.4s
+PASS Campaign wave 5 finishes
+WAVE 6: phase=Preparation, gate=100, gold=163, time=30.7s
+PASS Campaign wave 6 finishes
+WAVE 7: phase=Preparation, gate=100, gold=175, time=35.4s
+PASS Campaign wave 7 finishes
+WAVE 8: phase=Won, gate=100, gold=173, time=50.2s
+PASS Campaign wave 8 finishes
+PASS Affordable mixed army completes all eight waves
