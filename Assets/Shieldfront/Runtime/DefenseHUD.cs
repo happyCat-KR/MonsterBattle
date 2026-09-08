@@ -13,6 +13,7 @@ namespace Shieldfront
         DefenseGame game;
         Font font;
         Canvas canvas;
+        public float Scale => canvas != null ? canvas.scaleFactor : Screen.width / 1600f;
         Text stats, status, notice, waveInfo, selection, primaryLabel, rallyLabel, pauseLabel, speedLabel, soundLabel;
         Text resumeLabel;
         Image healthFill;
@@ -35,6 +36,7 @@ namespace Shieldfront
             canvas = root.GetComponent<Canvas>(); canvas.renderMode = RenderMode.ScreenSpaceOverlay; canvas.sortingOrder = 50;
             var scaler = root.GetComponent<CanvasScaler>(); scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1600, 900); scaler.matchWidthOrHeight = 0;
+            scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.Expand;
             if (EventSystem.current == null)
             {
                 var es = new GameObject("UI Event System", typeof(EventSystem), typeof(InputSystemUIInputModule)); es.transform.SetParent(transform, false);
@@ -78,6 +80,18 @@ namespace Shieldfront
             selection = Label(context, "", 28, 16, 950, 28, 17, ink);
             upgrade = Action(context, "부대 강화", 1010, 10, 260, 38, game.Upgrade, new Color(.15f, .26f, .29f), out _);
             sell = Action(context, "부대 해산", 1285, 10, 288, 38, game.Sell, panel, out _);
+            AnchorRight(top, 700);
+            AnchorRight(deck, 964);
+            AnchorRight(context, 1000);
+        }
+        void AnchorRight(RectTransform strip, float fromX)
+        {
+            foreach (RectTransform rect in strip)
+            {
+                if (rect.anchoredPosition.x < fromX) continue;
+                rect.anchorMin = rect.anchorMax = Vector2.one;
+                rect.anchoredPosition += Vector2.left * 1600;
+            }
         }
         void BuildCard(RectTransform deck, int index)
         {

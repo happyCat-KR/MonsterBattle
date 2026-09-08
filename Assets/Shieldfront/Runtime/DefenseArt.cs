@@ -16,7 +16,7 @@ namespace Shieldfront
     public class DefenseArt : MonoBehaviour
     {
         readonly Dictionary<Color, Material> materials = new Dictionary<Color, Material>();
-        readonly List<Mesh> meshes = new List<Mesh>();
+        readonly Dictionary<Vector3, Mesh> meshes = new Dictionary<Vector3, Mesh>();
         public static readonly Color Blue = new Color(.13f, .38f, .59f);
         public static readonly Color Gold = new Color(.91f, .70f, .32f);
         public static readonly Color Iron = new Color(.46f, .55f, .58f);
@@ -46,6 +46,13 @@ namespace Shieldfront
         public Transform Cone(Transform parent, Vector3 p, float radius, float height, Color color, int sides = 7)
         {
             GameObject go = new GameObject("Faceted crown"); go.transform.SetParent(parent, false); go.transform.localPosition = p;
+            Vector3 key = new Vector3(radius, height, sides);
+            if (meshes.TryGetValue(key, out var existing))
+            {
+                go.AddComponent<MeshFilter>().sharedMesh = existing;
+                go.AddComponent<MeshRenderer>().sharedMaterial = Mat(color);
+                return go.transform;
+            }
             var v = new List<Vector3>(); var tri = new List<int>();
             for (int i = 0; i < sides; i++)
             {
@@ -56,7 +63,7 @@ namespace Shieldfront
                 tri.Add(k); tri.Add(k + 1); tri.Add(k + 2);
             }
             Mesh mesh = new Mesh { name = "Original low-poly cone" }; mesh.SetVertices(v); mesh.SetTriangles(tri, 0); mesh.RecalculateNormals();
-            meshes.Add(mesh); go.AddComponent<MeshFilter>().sharedMesh = mesh; go.AddComponent<MeshRenderer>().sharedMaterial = Mat(color);
+            meshes.Add(key, mesh); go.AddComponent<MeshFilter>().sharedMesh = mesh; go.AddComponent<MeshRenderer>().sharedMaterial = Mat(color);
             return go.transform;
         }
         public Transform Line(Transform parent, string name, Vector3 a, Vector3 b, float width, Color color)
@@ -87,6 +94,7 @@ namespace Shieldfront
                 float x = (float)random.NextDouble() * 40 - 18;
                 float z = (i % 2 == 0 ? -1 : 1) * (10.9f + (float)random.NextDouble() * 2.3f);
                 float scale = .65f + (float)random.NextDouble() * .8f;
+                if (z < 0) scale *= .6f; // Keep foreground foliage below deployed soldiers.
                 if (i < 60)
                 {
                     Part(world, "Pine trunk", PrimitiveType.Cylinder, new Vector3(x, .7f * scale, z), new Vector3(.23f, .7f * scale, .23f), Wood);
@@ -249,7 +257,7 @@ namespace Shieldfront
         void OnDestroy()
         {
             foreach (var mat in materials.Values) if (mat != null) Destroy(mat);
-            foreach (var mesh in meshes) if (mesh != null) Destroy(mesh);
+            foreach (var mesh in meshes.Values) if (mesh != null) Destroy(mesh);
         }
     }
 }

@@ -1,0 +1,16 @@
+PASS GraphicRaycaster + button click selects Shield card
+PASS Place shield formation through controller
+PASS Archer card purchase and deployment
+PASS Second shield formation deployment
+PASS Displayed army matches purchased members and gold
+PASS Visible soldier body can be selected by raycast
+PASS Start button begins wave
+PASS Pause freezes simulation
+PASS Wave spawns visible enemies
+PASS Live wave completion triggers preparation
+PASS All purchased units return with full health
+PASS Preparation saves automatically
+PASS Continue restores actual saved campaign
+PASS Controller upgrades selected formation
+PASS Controller sells selected formation
+PASS Restart removes old combatants and resets economy

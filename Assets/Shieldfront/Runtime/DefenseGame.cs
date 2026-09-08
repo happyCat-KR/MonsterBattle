@@ -30,7 +30,7 @@ namespace Shieldfront
         AudioClip clickSound, strikeSound, hornSound, victorySound, gateSound;
         float soundClock, accumulator, restartUntil;
         Vector3 cameraFocus = new Vector3(1, 0, 0);
-        float zoom = 1;
+        float zoom = .88f;
         bool focusPaused;
         bool ownsRules;
         class Flight { public Transform t; public Vector3 from, to; public float age, duration; public bool arrow; }
@@ -61,6 +61,7 @@ namespace Shieldfront
             RenderSettings.ambientMode = AmbientMode.Flat; RenderSettings.ambientLight = new Color(.60f, .67f, .69f);
             RenderSettings.fog = false; QualitySettings.shadowDistance = 100;
             Application.targetFrameRate = 60;
+            Application.runInBackground = true;
         }
         void Bind(DefenseSimulation sim)
         {
@@ -73,7 +74,7 @@ namespace Shieldfront
         {
             ClearVisuals(); Bind(new DefenseSimulation(rules));
             SelectedKind = -1; SelectedSquad = -1; Paused = false; Speed = 1; restartUntil = 0;
-            cameraFocus = new Vector3(1, 0, 0); zoom = 1;
+            cameraFocus = new Vector3(1, 0, 0); zoom = .88f;
             Notify("아래 부대 카드를 선택한 뒤, 점선 안의 전장을 클릭하세요. 방패 보병과 궁수 조합으로 시작해 보세요.");
             RebuildMarkers();
         }
@@ -195,6 +196,15 @@ namespace Shieldfront
                     if (!f.Alive) continue;
                     view = Art.Soldier(f.kind, soldiers); views.Add(f.id, view);
                     view.root.transform.position = f.position; view.lastPosition = f.position;
+                    if (!f.enemy)
+                    {
+                        // Pick the visible model, not only the ground underneath its feet.
+                        view.root.layer = 29;
+                        var pick = view.root.AddComponent<BoxCollider>();
+                        float height = f.kind == TroopKind.Tower ? 4.6f : f.kind == TroopKind.Cavalry ? 2.8f : 2;
+                        pick.center = Vector3.up * height * .5f;
+                        pick.size = new Vector3(1.1f, height, 1.1f);
+                    }
                 }
                 if (view.root.activeSelf) Art.Pose(view, f, Paused ? 0 : dt * Speed, BattleCamera);
             }
@@ -210,13 +220,13 @@ namespace Shieldfront
         }
         void UpdateCamera(float dt)
         {
-            float scale = Screen.width / 1600f;
-            float lower = Mathf.Clamp(260 * scale / Screen.height, .16f, .48f);
-            float upper = Mathf.Clamp(140 * scale / Screen.height, .1f, .24f);
+            float scale = hud != null ? hud.Scale : Screen.width / 1600f;
+            float lower = Mathf.Clamp(308 * scale / Screen.height, .12f, .40f);
+            float upper = Mathf.Clamp(137 * scale / Screen.height, .07f, .20f);
             BattleCamera.rect = new Rect(0, lower, 1, 1 - lower - upper);
-            BattleCamera.transform.position = cameraFocus + new Vector3(10, 30, -28);
+            BattleCamera.transform.position = cameraFocus + new Vector3(3, 22, -34);
             BattleCamera.transform.LookAt(cameraFocus);
-            float fit = Mathf.Max(15.2f, 25f / BattleCamera.aspect);
+            float fit = Mathf.Max(10.8f, 23f / BattleCamera.aspect);
             BattleCamera.orthographicSize = fit * zoom;
         }
         void HandleInput()
@@ -232,7 +242,7 @@ namespace Shieldfront
                 Vector3 pan = new Vector3((k.dKey.isPressed ? 1 : 0) - (k.aKey.isPressed ? 1 : 0), 0, (k.wKey.isPressed ? 1 : 0) - (k.sKey.isPressed ? 1 : 0));
                 cameraFocus += pan * Time.unscaledDeltaTime * 10;
                 cameraFocus.x = Mathf.Clamp(cameraFocus.x, -6, 8); cameraFocus.z = Mathf.Clamp(cameraFocus.z, -5, 5);
-                if (k.homeKey.wasPressedThisFrame) { cameraFocus = new Vector3(1, 0, 0); zoom = 1; }
+                if (k.homeKey.wasPressedThisFrame) { cameraFocus = new Vector3(1, 0, 0); zoom = .88f; }
             }
             Mouse m = Mouse.current; if (m == null) return;
             bool overUI = EventSystem.current != null && EventSystem.current.IsPointerOverGameObject();
@@ -252,6 +262,12 @@ namespace Shieldfront
             }
             if (!m.leftButton.wasPressedThisFrame) return;
             if (SelectedKind >= 0) { Place(point); return; }
+            if (Physics.Raycast(ray, out var hit, 160f, 1 << 29))
+            {
+                foreach (var f in Sim.fighters)
+                    if (!f.enemy && f.Alive && views.TryGetValue(f.id, out var v) && v.root == hit.collider.gameObject)
+                    { SelectSquad(f.squad); return; }
+            }
             for (int i = 0; i < Sim.squads.Count; i++)
                 if ((Sim.squads[i].position - point).sqrMagnitude < 3f) { SelectSquad(i); return; }
             if (SelectedSquad >= 0) Place(point);

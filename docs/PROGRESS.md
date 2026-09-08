@@ -1,77 +1,44 @@
-# 진행 상태
+# 현재 진행 상태
 
-## 현재 단계
+## 2026-09-08 · 3D 본진 방어 게임으로 전환
 
-- 확인일: 2026-09-07 (Asia/Seoul)
-- **7단계 MVP 진행 중. 모집·성장·웨이브 UI를 확장했다. 사용자 Play 확인 대기.**
-- 현재 구현: 전장, 자동 이동·공격·사망, 승패·재시작, 전투 전 배치, 병종별 임시 역할, 골드 모집, 경험치·플레이어 레벨·배치 제한, 웨이브 강화, 하단 상점형 UI, 새로고침.
-- 아직 구현하지 않음: 동일 병사 합성, 병사 개별 레벨·전직, 종족·직업 시너지, 최종 밸런스.
-- 기존 루트 AGENTS.md 및 docs 문서는 없었으므로 새로 작성했다.
-- 기획은 [GAME_DESIGN.md](GAME_DESIGN.md), 작업 규칙은 [AGENTS.md](../AGENTS.md)를 참조한다.
+사용자의 새 요청에 따라 단계별 프로토타입 작업을 넘어, 시작부터 승패·재시작까지 가능한 8공세 캠페인으로 개발했다. 게임 규칙은 [GAME_DESIGN](GAME_DESIGN.md), 실행과 조작은 [README](../README.md), 작업 규칙은 [AGENTS](../AGENTS.md)를 참조한다.
 
-## 프로젝트 조사 결과
+## 구현 상태
 
-| 항목 | 확인 결과 |
+- 새 실행 씬: `Assets/Scenes/Shieldfront.unity`. 기본 빌드 씬의 첫 항목으로 설정했다.
+- 기존 `SampleScene`, `Assets/Scripts`, HTML 프로토타입은 보존했다. 이전 조사 문서는 [보관 문서](archive/PROGRESS_2026-09-07.md)에 있다.
+- 카드 그림 선택과 3D 위치 배치, 부대 선택·이동·강화·해산, 감시탑, 병종 역할, 자동 전투, 적 공세·오우거, 본진 피해·수리, 함성, 승패와 새 원정이 연결되어 있다.
+- 실제 부대 모델을 촬영한 카드, 한국어 uGUI, 상단 정보와 하단 편성·명령 UI를 구성했다. 중앙 결과 모달은 사용하지 않는다.
+- 선택 영역·사거리 표시, 화면 비율 대응, 카메라 이동·확대, 보행·공격·사망 표현, 화살·타격 효과와 합성 효과음을 포함한다.
+- 일시정지, 배속, 소리 토글, 창 전환 시 전투 일시정지, 준비 상태 자동 저장과 이어하기를 포함한다.
+- 원본 모델은 절차적으로 생성하고 공통 재질·메시를 재사용한다. 외부 에셋 설치는 없다.
+- macOS 앱: `Builds/Shieldfront.app`. 빌드 폴더는 기존 `.gitignore` 규칙에 따라 Git 대상에서 제외된다.
+
+## 수행한 검증
+
+| 검증 | 결과 / 증거 |
 | --- | --- |
-| Unity | ProjectSettings/ProjectVersion.txt: **6000.6.0f1**, revision f7f8ed4d1e24 |
-| 렌더링 관련 구성 | URP 17.6.0 패키지와 PC/Mobile 렌더 파이프라인·렌더러 설정 에셋 존재. 플랫폼 결정으로 해석하지 않음 |
-| 주요 패키지 | Input System 1.20.0, AI Navigation 2.0.14, Test Framework 1.8.0 |
-| 씬 | Assets/Scenes/SampleScene.unity. Main Camera, Directional Light, Global Volume 존재. 빌드 씬 목록에도 등록됨 |
-| 스크립트 | Assets/TutorialInfo 아래 Readme.cs 및 Editor/ReadmeEditor.cs만 확인. 게임 전용 코드 없음 |
-| 기타 에셋 | Assets/Settings, InputSystem_Actions.inputactions, 템플릿 Readme |
-| 참고 자료 | References/prototype.html, 522줄 전체 읽음. 내용 분석은 GAME_DESIGN.md 참조 |
-| Git | 현재 루트는 Git 저장소가 아님. git status로 변경 비교 불가 |
+| Unity C# 재컴파일 | `recompile_status`: completed, failed=false, errors=[] |
+| 규칙·캠페인 자동 검증 | 31개 검사 통과. 구매 실패 시 골드 유지, 배치 제한, 저장 왕복, 중복 해산 방지, 전투 중 편집 차단, 함성 1회 제한, 패배, 보상 중복 방지, 병종 상성 포함. [결과](verification/campaign-validation.txt) |
+| 8공세 완주 | 기본 골드와 보상만 사용하는 혼합 편성으로 모든 공세 완료. 최종 성문 100, 잔여 골드 173. 매 공세 종료와 승리 판정 확인 |
+| Play 통합 검증 | 16개 검사 통과. UI GraphicRaycaster와 EventSystem 클릭, 컨트롤러 구매·배치, 병사 몸통 Physics 레이캐스트, 출전, 일시정지, 실시간 객체 생성, 종료 이벤트, 전 부대 회복, 저장 불러오기, 강화·해산·초기화. [결과](verification/play-validation.txt) |
+| 실제 화면 | Play의 [배치 화면](verification/deployment.png)과 [전투 화면](verification/battle.png)을 캡처하고 직접 열어 모델·한글·카드·전장·버튼 배치를 확인 |
+| 런타임 오류 | 최종 Play 검증 후 Console error 0개 |
+| macOS 앱 빌드 | 성공. 최종 수치와 경고 개수는 [빌드 결과](verification/build.txt)에 기록 |
+| 독립 앱 시작 | 앱 프로세스를 직접 실행. Metal, Input System, 1440×900 창 초기화 확인. [플레이어 로그](verification/player.log) |
+| 변경 파일 형식 | `git diff --check` 통과 |
 
-## Unity CLI와 에디터
+Play 검증은 에디터 안의 UI 이벤트·물리 레이캐스트·컨트롤러와 동일한 전투 시뮬레이션을 사용한다. 사람의 마우스 조작으로 전 캠페인을 플레이한 결과와는 구분한다. 테스트에서 사용한 저장 슬롯은 종료 후 기존 내용으로 복원한다.
 
-- 실행 파일: `/Users/minchichi/.unity/bin/unity`
-- `unity --version`: **1.0.0-beta.6**
-- `unity --help`, `unity list --help`, `unity pipeline --help`에서 사용 가능한 명령과 옵션 확인.
-- 주요 명령: `status`(연결 상태), `pipeline list`(에디터/패키지 상태), `list`(연결된 에디터 도구 목록), `command`(에디터 명령), `open`, `run`, `build`, `test`, `editors`, `projects`, `doctor`, `mcp`. 도움말 확인은 각 명령의 실행 성공을 의미하지 않는다.
-- `unity pipeline list --json`: MonsterBattle 실행 중, `hasPipelinePackage: false`, `isReachable: false`.
-- `unity status --json`: 연결 0개, `STATUS_NO_INSTANCES`.
-- 주 에디터 프로세스의 실행 경로도 Unity 6000.6.0f1로 확인했다. 에디터 실행과 CLI 자동화 연결은 별개다.
-- 이번에는 패키지를 설치하지 않았다. 연결된 에디터의 실제 도구 목록은 아직 조회할 수 없다.
+## 빌드 경고와 미검증 범위
 
-### 다음 단계에 사용할 연결 설정 안내
+- 첫 전체 빌드의 경고 5개는 기존 `BattlefieldSetup.cs`의 구 API 2개, 플레이어용 Pipeline 미설정 1개, 사용하지 않는 URP 디버그 셰이더 제거 2개였다. 런타임 자동화 서버는 앱에 활성화하지 않았다.
+- 독립 앱 시작 로그에 사용하지 않는 URP 심도·Panini 후처리 셰이더가 제거되었다는 메시지가 있다. 현재 게임 카메라는 해당 후처리를 사용하지 않는다. 앱에서 별도의 전체 캠페인 UI 자동 플레이는 수행하지 않았다.
+- 빌드 과정에서 Unity 6가 URP 리소스와 설정의 새 직렬화 필드를 저장했다. 창 크기·시작 씬·제품 이름은 새 게임 실행에 맞춰 설정했다.
+- 한 전장의 로컬 싱글플레이 버전이다. 장시간 내구성, 최저 사양 기기 성능, Windows·모바일 빌드, 다른 OS 한글 글꼴, 사람의 조작을 통한 최종 난이도 평가는 미검증이다.
+- 직접 작성한 모델·애니메이션·효과음으로 플레이 흐름을 완결했으며, 상용 게임과 동일한 아트 규모나 출시 심사를 완료했다는 의미는 아니다.
 
-CLI가 안내한 설치 명령은 아래와 같다. **아직 실행하지 않은 설정 절차**이며, 게임 구현 단계에서 연결을 준비할 때 사용한다.
+## 사용자가 확인할 결과
 
-1. Unity Hub의 **Projects**에서 **MonsterBattle**을 열어 둔다. 현재 조사 시점에는 이미 실행 중이다.
-2. macOS **터미널** 앱에서 다음 명령을 실행한다. 이 명령은 프로젝트에 Pipeline 패키지를 설치하므로 프로젝트 파일이 변경된다.
-
-   ```sh
-   unity pipeline install --project-path /Users/minchichi/Developer/MonsterBattle
-   ```
-
-3. Unity의 패키지 처리와 스크립트 컴파일이 끝날 때까지 기다린다.
-4. 터미널에서 `unity pipeline list --json`과 `unity status --json`을 실행해 패키지 설치 및 연결 여부를 확인한다.
-5. 연결되면 `unity list --project-path /Users/minchichi/Developer/MonsterBattle`로 실제 제공되는 도구를 확인한다. 실패하면 오류 내용을 먼저 조사한다.
-
-## 개발 순서와 단계별 확인 결과물
-
-현재는 요청한 순서를 유지한다. 소수 병사로 이동·접촉을 먼저 검증하고 병종 차이를 확장하는 순서가 적절하다. 병력 규모가 정해지면 이동·성능 구조를 다시 검토한다.
-
-| 단계 | 범위 | 사용자가 확인할 작은 결과물 | 상태 |
-| --- | --- | --- | --- |
-| 1 | 프로젝트·HTML 조사, 문서 정리 | 기획과 진행 문서 | 완료 |
-| 2 | 작은 3D 전장, 카메라, 임시 아군·적 | Play에서 양측 도형과 전장을 볼 수 있음 | 완료 |
-| 3 | 소수 병사의 자동 이동·공격·체력·사망 | 병사들이 접근해 싸우고 체력이 소진되면 사망 | 완료 |
-| 4 | 승패 판정과 재시작 | 단일 전투 결과를 확인하고 초기 상태로 다시 시작 | 완료 |
-| 5 | 전투 전 배치 조작 | 배치를 바꾸고 전투를 시작 | 완료 |
-| 6 | 창병·기마병 역할 차이 | 병종별 전투 행동 차이를 비교 | 구현, Play 확인 대기 |
-| 7 | 모집·성장·보상 등 진행 규칙 협의와 추가 | 모집·경험치·웨이브·상점 UI를 실행 | 진행 중 |
-| 8 | 3D 모델·애니메이션·효과음, 완성도 개선 | 전투 동작과 소리, 시각적 피드백 확인 | 대기 |
-
-7단계처럼 큰 단계는 시작할 때 작은 실행 단위로 나누어 사용자와 진행 범위를 맞춘다.
-
-## 이번 검증 및 확인 방법
-
-- 파일 조사와 CLI 읽기 전용 진단을 수행했다. HTML 브라우저 실행, Unity Play, 새 컴파일, 빌드 및 테스트는 수행하지 않았다.
-- 씬·C#·에셋·패키지·프로젝트 설정은 변경하지 않았다. 새 문서 3개만 작성했다.
-- 사용자 확인: VS Code에서 루트 `AGENTS.md`, `docs/GAME_DESIGN.md`, `docs/PROGRESS.md`를 열고 **Shift+Command+V**로 Markdown 미리보기를 확인한다.
-- Unity 기본 씬을 보려면 **Project** 창에서 **Assets → Scenes → SampleScene**을 더블 클릭하고 **Hierarchy**의 Main Camera, Directional Light, Global Volume을 확인한다. 아직 전장이나 병사는 없다.
-
-## 다음 작업
-
-현재 변경 후 Unity 에디터에서 Console을 Clear하고 Play를 확인한다. 확인 항목은 상단 레벨·웨이브·골드 HUD, 하단 상점 3칸, 새로고침(2골드), 경험치 +4(4골드), 전투 시작 버튼, 레벨에 따른 모집 제한이다. 다음 구현은 사용자 확인 후 병사 보유 목록과 동일 병사 합성 여부를 결정해 진행한다.
+[README의 바로 실행](../README.md#바로-실행)을 따라 앱 또는 새 씬을 실행하고, 카드 선택 → 전장 배치 → 전투 시작을 확인한다. 이후 개선 범위는 사용자의 실제 플레이 피드백으로 정한다. Git 커밋·푸시나 외부 배포는 에이전트가 수행하지 않았다.

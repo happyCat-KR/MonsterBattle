@@ -57,6 +57,7 @@ namespace Shieldfront
 
         public bool CanPlace(Vector3 p, int ignore = -1)
         {
+            if (float.IsNaN(p.x) || float.IsNaN(p.z) || float.IsInfinity(p.x) || float.IsInfinity(p.z) || p.y != 0) return false;
             if (p.x < -11 || p.x > 3 || p.z < -9 || p.z > 9) return false;
             for (int i = 0; i < squads.Count; i++)
                 if (i != ignore && (squads[i].position - p).sqrMagnitude < 10f) return false;
